@@ -1,0 +1,28 @@
+{
+  "name": "server",
+  "version": "1.0.0",
+  "description": "shopping site",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "author": "kingsley",
+  "license": "ISC",
+  "dependencies": {
+    "@paypal/checkout-server-sdk": "^1.0.3",
+    "body-parser": "^1.20.2",
+    "busboy": "^1.6.0",
+    "ejs": "^3.1.9",
+    "express": "^4.19.2",
+    "express-session": "^1.18.0",
+    "mongodb": "^6.5.0",
+    "mysql": "^2.18.1",
+    "passport": "^0.7.0",
+    "passport-local": "^1.0.0",
+    "qrcode": "^1.5.3",
+    "sha1": "^1.1.1",
+    "stripe": "^14.24.0",
+    "three": "^0.164.1"
+  }
+}

@@ -1,0 +1,176 @@
+       <!DOCTYPE html>
+       <html lang="en">
+       <head>
+         <meta charset="UTF-8">
+         <meta name="viewport" content="width=device-width, initial-scale=1.0">
+         <title>Wallet</title>
+         <link rel="stylesheet" href="/styles.css">
+       </head>
+       <body>
+ <div id= "blurred">
+  <h1>${user.username}'s Wallet</h1>
+    <h3 class="balance" id="balance">Balance: $${user.wallet.balance}</h3>
+
+    <h2>Add Money:</h2>
+    <form id="add-form" action="/add" method="post">
+        <input type="tel" name="amount" placeholder="Amount" required>
+        <br><br>
+        <button type="button" class="btn" onclick="showModal('add-form')">Add</button>
+    </form>
+    <h2>Send Money:</h2>
+    <form id="send-form" action="/send" method="post">
+        <input type="tel" name="amount" placeholder="Amount" required>
+        <br><br>
+        <input type="text" name="recipient" placeholder="Recipient" required>
+        <br><br>
+        <button type="button" class="btn" onclick="showModal('send-form')">Send</button>
+    </form>
+
+    <h2>Transactions:</h2>
+    <div class="nav">
+        <strong><ul id="transactions-list">
+            ${user.wallet.transactions.map(transaction => `<li>${transaction}</li>`).join('')}
+            <br>
+        </ul></strong>
+    </div>
+    <br><br>
+    <a href="/user">
+    <h5 class="balance">back</h5></a>
+</div>
+
+    <!-- Modal -->
+    <div id="passcodeModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <form id="modal-form">
+                <label for="passcode">Enter Passcode:</label>
+              <input type="password"
+id="modal-passcode" name="passcode" required>
+                <br><br>
+               <button type="button" class = "btn" onclick="submitForm()">Submit</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+
+const users = [
+  {
+    id: 1,
+    username: '',
+    password: '',
+    profilePic: [],
+    wallet: {
+      balance: 0,
+      transactions: []
+    },
+    userId: '',
+    resetToken: null,
+    tokenExpiry: null
+  },
+  // Add more users as needed
+
+
+        // Get the modal
+        var modal = document.getElementById("passcodeModal");
+        var modalForm = document.getElementById("modal-form");
+        var currentForm = null;
+
+        // Get the <span> element that closes the modal
+        var span = document.getElementsByClassName("close")[0];
+
+        // When the user clicks on <span> (x), close the modal
+        span.onclick = function() {
+            modal.style.display = "none";
+        }
+
+        // When the user clicks anywhere outside of the modal, close it
+        window.onclick = function(event) {
+            if (event.target == modal) {
+                modal.style.display = "none";
+document.getElementById('blurred').style .filter ="blur(0px)";
+            }
+        }
+
+          function showModal(formId) {
+                 currentForm = document.getElementById(formId);
+                 modal.style.display = "block";
+document.getElementById("modal-form").style .filter= "blur(0px)";
+document.getElementById('blurred').style .filter ="blur(5px)";
+             }
+
+     // Submit the form with the passcode
+        function submitForm() {
+            var passcode = document.getElementById("modal-passcode").value;
+            var passcodeInput = document.createElement("input");
+            passcodeInput.setAttribute("type", "hidden");
+            passcodeInput.setAttribute("name", "passcode");
+            passcodeInput.setAttribute("value", passcode);
+            currentForm.appendChild(passcodeInput);
+            currentForm.submit();
+        }
+
+function adjustColorsBasedOnTime() {
+    const date = new Date();
+    const hours = date.getHours();
+    const body = document.body;
+
+    if (hours >= 6 && hours < 18) { // Daytime (6am to 5:59pm)
+        body.style.backgroundColor = "white";
+        body.style.color = "black";
+    } else { // Nighttime (6pm to 5:59am)
+        body.style.backgroundColor = "black";
+        body.style.color = "white";
+    }
+}
+
+// Call the function when the page loads to adjust colors based on the time of day
+adjustColorsBasedOnTime();
+
+function saveToLocalStorage() {
+                 localStorage.setItem('user', JSON.stringify(user));
+             }
+
+             function loadFromLocalStorage() {
+                 const storedUser = localStorage.getItem('user');
+                 if (storedUser) {
+                     return JSON.parse(storedUser);
+                 }
+                 return null;
+             }
+
+             function updateUI() {
+                 const userData = loadFromLocalStorage();
+                 if (userData) {
+                     document.getElementById('username').innerText = `${userData.username}'s Wallet`;
+                     document.getElementById('balance').innerText = `Balance: $${userData.wallet.balance}`;
+                     const transactionsList = document.getElementById('transactions-list');
+                     transactionsList.innerHTML = userData.wallet.transactions.map(transaction => `<li>${transaction}</li>`).join('');
+                 }
+             }
+
+             // SSE Client
+             const eventSource = new EventSource('/events');
+
+             eventSource.onmessage = function(event) {
+                 const data = JSON.parse(event.data);
+
+                 if (data.type === 'deposit' || data.type === 'send') {
+                     user.wallet.balance = data.balance;
+                     user.wallet.transactions = data.transactions;
+
+                     if (data.type === 'send' && data.recipient === user.username) {
+                         alert(`You have received $${data.amount} from ${data.username}`);
+                     }
+
+                     saveToLocalStorage();
+                     updateUI();
+                 }
+             };
+
+             // Initialize UI on load
+             updateUI();
+
+    </script>
+       </body>
+       </html>
